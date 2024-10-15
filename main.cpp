@@ -37,7 +37,7 @@ class myHashMap
             K key;
             V value;
             Node* next;
-            Node* prev;
+         
 
             //constructor
             Node(K paramK, V paramV)
@@ -45,7 +45,7 @@ class myHashMap
                 key = paramK;
                 value = paramV;
                 next = nullptr;
-                prev = nullptr;
+           
             }
         };
 
@@ -72,15 +72,16 @@ class myHashMap
             }
             else //I just don't wanna deal with doubles right now. Only integers and strings for the moment
             {
-                std::cerr << "Invalid key value type" << std::endl;
-                return -1;
+                throw std::invalid_argument("Invalid key type " + std::to_string(key) + " at line " + std::to_string(__LINE__));
             }
         }
 
         void resize()
         {
             int newSize = capacity * 2;
+            std::cout << "\nResizing from " << capacity << " to " << newSize << std::endl;
             Node** newBucketsArray = new Node*[newSize];
+        
 
             for (int i = 0; i < newSize; i++)
             {
@@ -95,7 +96,8 @@ class myHashMap
                     while (current != nullptr)
                     {
                         Node* nextNode = current->next;
-                        int newIndex = hash(current->key) % newSize;
+                        int newIndex = hash(current->key);
+                        std::cout << "Rehashing key: " << current->key << " to new index: " << newIndex << std::endl;
                         current->next = newBucketsArray[newIndex];
                         newBucketsArray[newIndex] = current;
                         current = nextNode;
@@ -121,6 +123,9 @@ class myHashMap
             capacity = startingCapacity;
             loadFactor = .7f;
 
+            
+
+
             bucketsArray = new Node* [capacity];
             for(int i = 0; i < capacity; i++)
             {
@@ -144,39 +149,30 @@ class myHashMap
             delete[] bucketsArray;
         }
 
-    void removeElement(K key)
-    {
-        int index = hash(key);
-        Node* current = bucketsArray[index];
+    void removeElement(K key) {
+    int index = hash(key);
+    Node* current = bucketsArray[index];
+    Node* prev = nullptr;
 
-        while (current != nullptr)
-        {
-            if (current->key == key)
-            {
-                // Update pointers to remove current node
-                if (current->prev == nullptr) // head of the list
-                {
-                    bucketsArray[index] = current->next;
-                    if (current->next != nullptr)
-                    {
-                        current->next->prev = nullptr; // update the next node's prev
-                    }
-                }
-                else
-                {
-                    current->prev->next = current->next;
-                    if (current->next != nullptr)
-                    {
-                        current->next->prev = current->prev; // link the next node back
-                    }
-                }
-                delete current;
-                sizeCurrent--;
-                return;
+    while (current != nullptr) {
+        if (current->key == key) {
+            // If we're removing the head node
+            if (prev == nullptr) {
+                bucketsArray[index] = current->next; // Update head of the bucket
+            } else {
+                prev->next = current->next; // Bypass the current node
             }
-            current = current->next;
+            delete current; // Free memory
+            sizeCurrent--; // Decrease the size
+            return; // Exit the function
         }
+        prev = current; // Move prev to current
+        current = current->next; // Move to the next node
     }
+    // If we reach here, the key was not found
+    throw std::runtime_error("Key not found");
+}
+
 
     void insertElement(K key, V value)
     {
@@ -189,7 +185,7 @@ class myHashMap
         sizeCurrent++;
 
         //check load factor
-        if(static_cast<float>(sizeCurrent / capacity) > loadFactor)
+        if((static_cast<float>((sizeCurrent)) / capacity) > loadFactor)
         {
             resize();
         }
@@ -224,8 +220,27 @@ class myHashMap
             current = current->next;
         }
 
-        throw std::runtime_error("This key cannot be located");
+        throw std::runtime_error("The key '" + std::to_string(key) + "' cannot be located in the hash map");
+
     }
+    void display() {
+        std::cout << "Hash Map Structure:" << std::endl;
+        for (int i = 0; i < capacity; i++) {
+            std::cout << "Bucket " << i << ": ";
+            Node* current = bucketsArray[i];
+            if (current == nullptr) {
+                std::cout << "empty"; // Indicate empty bucket
+            } else {
+                while (current != nullptr) {
+                    std::cout << "[" << current->key << ": " << current->value << "] ";
+                    current = current->next; // Move to the next node in the chain
+                }
+            }
+            std::cout << std::endl; // New line after each bucket
+        }
+        std::cout << "Total elements: " << sizeCurrent << std::endl; // Show total number of elements
+    }
+
 };
 
 
@@ -256,25 +271,12 @@ class binarySearchTree
 
 
 
-//this will be the main logic, ideally just getting input and calling functions
+/*this will be the main logic, ideally just getting input and calling functions
 int main()
 {
 
 //select either Binary Search Tree or Hashmap implementation
 
-myHashMap<std::string, std::string> testing;
-
-testing.insertElement("this is the key","this is the value");
-std::cout << testing.find("this is the key") << '\n';
-std::cout << "current size is " << testing.size() << '\n';
-std::cout << testing.empty() << '\n';
-
-testing.removeElement("this is the key");
-std::cout << "current size is " << testing.size() << '\n';
-std::cout << testing.empty();
-
-
-//get user input for window
 
 
 //scan input text and generate a character distribution
@@ -282,4 +284,58 @@ std::cout << testing.empty();
 
 //return generated output text based on constructed char distribution
 return 0;
+}*/
+int main()
+{
+    // Create an instance of myHashMap with a capacity of 10
+    myHashMap<int, std::string> map(10);
+
+    // Insert elements into the map that will cause collisions
+    std::cout << "Inserting elements into the hash map (testing collisions):" << std::endl;
+    map.insertElement(10, "ten");  // This will hash to index 0 (10 % 10 = 0)
+    map.insertElement(20, "twenty"); // This will also hash to index 0 (20 % 10 = 0)
+    map.insertElement(30, "thirty"); // This will hash to index 0 (30 % 10 = 0)
+    map.insertElement(25, "twenty five");
+
+    // Visualize the internal structure after insertions
+    std::cout << "Hash map structure after insertions (with collisions):" << std::endl;
+    map.display(); // Display the contents of the hash map
+
+    // Retrieve elements to check if they were stored correctly
+    try
+    {
+        std::cout << "Retrieving values:" << std::endl;
+        std::cout << "Value for key 10: " << map.find(10) << std::endl;
+        std::cout << "Value for key 20: " << map.find(20) << std::endl;
+        std::cout << "Value for key 30: " << map.find(30) << std::endl;
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+
+    // Remove an element and visualize the structure again
+    std::cout << "\nRemoving key 30" << std::endl;
+    map.removeElement(30);
+    
+    // Visualize the internal structure after removal
+    std::cout << "Hash map structure after removing key 30:" << std::endl;
+    map.display();
+
+    // Try to find the removed key
+    try
+    {
+        std::cout << "Trying to find removed key 30: ";
+        std::cout << map.find(20) << std::endl; // This should throw an error
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << e.what() << std::endl; // Should print an error message
+    }
+
+    // Display size and emptiness
+    std::cout << "\nMap size: " << map.size() << std::endl;
+    std::cout << "Is map empty? " << (map.empty() ? "Yes" : "No") << std::endl;
+
+    return 0;
 }
