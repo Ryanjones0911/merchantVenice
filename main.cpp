@@ -3,18 +3,19 @@
 #include<fstream>
 #include<cmath>
 #include<type_traits>
+#include<iostream>
 
-
+/*
 class charDistribution
 {
     private:
-        /* data */
+        // data 
     public:
-        charDistribution(/* args */);
+        charDistribution(// args );
         ~charDistribution();
     
     //constructor
-    charDistribution(/* args */)
+    charDistribution(// args )
     {
 
     }
@@ -24,10 +25,10 @@ class charDistribution
     {
 
     }   
-};
+};*/
 
 template <typename K, typename V>
-class hashMap
+class myHashMap
 {
     private:
         //simple linked list object to handle seperate chaining
@@ -114,7 +115,7 @@ class hashMap
 
     public:
         //constructor
-        hashMap(int startingCapacity = 20)
+        myHashMap(int startingCapacity = 20)
         {
             sizeCurrent = 0;
             capacity = startingCapacity;
@@ -128,7 +129,7 @@ class hashMap
         }
         
         //simple destructor 
-        ~hashMap()
+        ~myHashMap()
         {
             for(int i = 0; i < capacity; i++)
             {
@@ -228,17 +229,17 @@ class hashMap
 };
 
 
-
+/*
 class binarySearchTree
 {
     private:
-        /* data */
+        // data 
     public:
-        binarySearchTree(/* args */);
+        binarySearchTree(// args );
         ~binarySearchTree();
 
     //constructor
-    binarySearchTree(/* args */)
+    binarySearchTree(// args )
     {
 
     }
@@ -248,7 +249,8 @@ class binarySearchTree
     {
 
     }
-};
+};*/
+
 
 
 
@@ -260,7 +262,17 @@ int main()
 
 //select either Binary Search Tree or Hashmap implementation
 
-std::cout << "shut up" << std::endl;
+myHashMap<std::string, std::string> testing;
+
+testing.insertElement("this is the key","this is the value");
+std::cout << testing.find("this is the key") << '\n';
+std::cout << "current size is " << testing.size() << '\n';
+std::cout << testing.empty() << '\n';
+
+testing.removeElement("this is the key");
+std::cout << "current size is " << testing.size() << '\n';
+std::cout << testing.empty();
+
 
 //get user input for window
 
