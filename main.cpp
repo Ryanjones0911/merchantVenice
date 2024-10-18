@@ -7,11 +7,9 @@
 #include<algorithm>
 
 class CharDistribution {
-private:
-    int counts[27]; // 27 counters for 26 letters + space
+    private: int counts[27]; // 27 counters for 26 letters + space
     int total; // total occurrences of all characters
-public:
-    CharDistribution() : total(0) {
+    public: CharDistribution(): total(0) {
         for (int i = 0; i < 27; ++i) {
             counts[i] = 0;
         }
@@ -19,14 +17,13 @@ public:
 
     bool occurs(char c) {
         int index = c - 'a';
-        std::cout << "Checking character: " << c << " (index: " << index << ")" << std::endl;
         if (index < 0 || index >= 26) return false; // Bounds check
         return counts[index] > 0;
     }
 
     char getRandomChar() {
         if (total == 0) return ' '; // In case of no counts, return space
-        
+
         int randomIndex = rand() % total + 1;
         int cumulative = 0;
 
@@ -53,45 +50,37 @@ public:
     }
 };
 
-template <typename K, typename V>
-class myHashMap
-{
-    private:
-        //simple linked list object to handle seperate chaining
-        struct Node
-        {
-            K key;
-            V value;
-            Node* next;
-         
+template < typename K, typename V >
+    class myHashMap {
+        private:
+            //simple linked list object to handle seperate chaining
+            struct Node {
+                K key;
+                V value;
+                Node * next;
 
-            //constructor
-            Node(K paramK, V paramV)
-            {
-                key = paramK;
-                value = paramV;
-                next = nullptr;
-           
-            }
-        };
+                //constructor
+                Node(K paramK, V paramV) {
+                    key = paramK;
+                    value = paramV;
+                    next = nullptr;
+
+                }
+            };
 
         //This is not necessary for this project, but I wanted to make a more generically useful hashmap for fun
-        int hash(K key)
-        {
+        int hash(K key) {
             //if int, just do the modulo and return
-            if constexpr (std::is_integral<K>::value)
-            {
+            if constexpr(std::is_integral < K > ::value) {
                 return key % capacity;
             }
             //if string, get the ASCII int value of that string and hash that
-            else if constexpr (std::is_same<K, std::string>::value)
-            {
+            else if constexpr(std::is_same < K, std::string > ::value) {
                 int sum = 0;
-                
+
                 //cast every individual char in the string to it's int value and add it to 'sum'
-                for(char c : key)
-                {
-                    sum += static_cast<int>(c);
+                for (char c: key) {
+                    sum += static_cast < int > (c);
                 }
 
                 return sum % capacity;
@@ -102,29 +91,22 @@ class myHashMap
             }
         }
 
-        void resize()
-        {
+        void resize() {
             int newSize = capacity * 2;
-            std::cout << "\nResizing from " << capacity << " to " << newSize << std::endl;
-            Node** newBucketsArray = new Node*[newSize];
-        
+            Node ** newBucketsArray = new Node * [newSize];
 
-            for (int i = 0; i < newSize; i++)
-            {
+            for (int i = 0; i < newSize; i++) {
                 newBucketsArray[i] = nullptr;
             }
 
             //rehash everything
             {
-                for (int i = 0; i < capacity; i++)
-                {
-                    Node* current = bucketsArray[i];
-                    while (current != nullptr)
-                    {
-                        Node* nextNode = current->next;
-                        int newIndex = hash(current->key);
-                        std::cout << "Rehashing key: " << current->key << " to new index: " << newIndex << std::endl;
-                        current->next = newBucketsArray[newIndex];
+                for (int i = 0; i < capacity; i++) {
+                    Node * current = bucketsArray[i];
+                    while (current != nullptr) {
+                        Node * nextNode = current -> next;
+                        int newIndex = hash(current -> key);
+                        current -> next = newBucketsArray[newIndex];
                         newBucketsArray[newIndex] = current;
                         current = nextNode;
                     }
@@ -135,254 +117,216 @@ class myHashMap
             }
         }
 
-    int sizeCurrent;
-    int capacity;
-    float loadFactor;
-    Node** bucketsArray;
+        int sizeCurrent;
+        int capacity;
+        float loadFactor;
+        Node ** bucketsArray;
 
+        public:
+            //constructor
+            myHashMap(int startingCapacity = 20) {
+                sizeCurrent = 0;
+                capacity = startingCapacity;
+                loadFactor = .7f;
 
-    public:
-        //constructor
-        myHashMap(int startingCapacity = 20)
-        {
-            sizeCurrent = 0;
-            capacity = startingCapacity;
-            loadFactor = .7f;
-
-            
-
-
-            bucketsArray = new Node* [capacity];
-            for(int i = 0; i < capacity; i++)
-            {
-                bucketsArray[i] = nullptr;
-            }
-        }
-        
-        //simple destructor 
-        ~myHashMap()
-        {
-            for(int i = 0; i < capacity; i++)
-            {
-                Node* current = bucketsArray[i];
-                while(current != nullptr)
-                {
-                    Node* temp = current;
-                    current = current->next;
-                    delete temp;
+                bucketsArray = new Node * [capacity];
+                for (int i = 0; i < capacity; i++) {
+                    bucketsArray[i] = nullptr;
                 }
             }
-            delete[] bucketsArray;
-        }
 
-    void removeElement(K key) {
-    int index = hash(key);
-    Node* current = bucketsArray[index];
-    Node* prev = nullptr;
-
-    while (current != nullptr) {
-        if (current->key == key) {
-            // If we're removing the head node
-            if (prev == nullptr) {
-                bucketsArray[index] = current->next; // Update head of the bucket
-            } else {
-                prev->next = current->next; // Bypass the current node
-            }
-            delete current; // Free memory
-            sizeCurrent--; // Decrease the size
-            return; // Exit the function
-        }
-        prev = current; // Move prev to current
-        current = current->next; // Move to the next node
-        }
-    // If we reach here, the key was not found
-    throw std::runtime_error("Key not found");
-    }
-
-
-    void insert(K key, V value)
-    {
-        std::cout << "Inserting key: " << key << std::endl;
-        int index = hash(key);
-        std::cout << "Hashing key: " << key << " to index: " << index << std::endl;
-        
-        Node* newNode = new Node(key, value);
-
-        newNode->next = bucketsArray[index];
-        bucketsArray[index] = newNode;
-        sizeCurrent++;
-
-        //check load factor
-        if((static_cast<float>((sizeCurrent)) / capacity) > loadFactor)
-        {
-            resize();
-        }
-    }
-
-    int size()
-    {
-        return sizeCurrent;
-    }
-
-    bool empty()
-    {
-        if(sizeCurrent == 0)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    V* find(K key)
-    {
-        std::cout << "Finding key: " << key << std::endl;
-        int index = hash(key);
-
-        Node* current = bucketsArray[index];
-
-        while(current != nullptr)
-        {
-            if(current->key == key)
-            {
-                return &current->value;
-            }
-            current = current->next;
-        }
-
-        //throw std::runtime_error("The key '" + key + "' cannot be located in the hash map");
-        return nullptr;
-
-    }
-    void display() {
-        std::cout << "Hash Map Structure:" << std::endl;
-        for (int i = 0; i < capacity; i++) {
-            std::cout << "Bucket " << i << ": ";
-            Node* current = bucketsArray[i];
-            if (current == nullptr) {
-                std::cout << "empty"; // Indicate empty bucket
-            } else {
-                while (current != nullptr) {
-                    std::cout << "[" << current->key << ": " << current->value << "] ";
-                    current = current->next; // Move to the next node in the chain
+            //simple destructor 
+            ~myHashMap() {
+                for (int i = 0; i < capacity; i++) {
+                    Node * current = bucketsArray[i];
+                    while (current != nullptr) {
+                        Node * temp = current;
+                        current = current -> next;
+                        delete temp;
+                    }
                 }
+                delete[] bucketsArray;
             }
-            std::cout << std::endl; // New line after each bucket
+
+        void removeElement(K key) {
+            int index = hash(key);
+            Node * current = bucketsArray[index];
+            Node * prev = nullptr;
+
+            while (current != nullptr) {
+                if (current -> key == key) {
+                    // If we're removing the head node
+                    if (prev == nullptr) {
+                        bucketsArray[index] = current -> next; // Update head of the bucket
+                    } else {
+                        prev -> next = current -> next; // Bypass the current node
+                    }
+                    delete current; // Free memory
+                    sizeCurrent--; // Decrease the size
+                    return; // Exit the function
+                }
+                prev = current; // Move prev to current
+                current = current -> next; // Move to the next node
+            }
+            // If we reach here, the key was not found
+            throw std::runtime_error("Key not found");
         }
-        std::cout << "Total elements: " << sizeCurrent << std::endl; // Show total number of elements
-    }
 
-};
+        void insert(K key, V value) {
+            int index = hash(key);
 
+            Node * newNode = new Node(key, value);
 
-template<typename K, typename V>
-class BinarySearchTree {
-private:
-    struct Node {
-        K key;
-        V value;
-        Node *left, *right;
-        Node(K k, V v) : key(k), value(v), left(nullptr), right(nullptr) {}
+            newNode -> next = bucketsArray[index];
+            bucketsArray[index] = newNode;
+            sizeCurrent++;
+
+            //check load factor
+            if ((static_cast < float > ((sizeCurrent)) / capacity) > loadFactor) {
+                resize();
+            }
+        }
+
+        int size() {
+            return sizeCurrent;
+        }
+
+        bool empty() {
+            if (sizeCurrent == 0) {
+                return true;
+            }
+            return false;
+        }
+
+        V * find(K key) {
+            int index = hash(key);
+
+            Node * current = bucketsArray[index];
+
+            while (current != nullptr) {
+                if (current -> key == key) {
+                    return & current -> value;
+                }
+                current = current -> next;
+            }
+
+            //throw std::runtime_error("The key '" + key + "' cannot be located in the hash map");
+            return nullptr;
+
+        }
+        void display() {
+            std::cout << "Hash Map Structure:" << std::endl;
+            for (int i = 0; i < capacity; i++) {
+                std::cout << "Bucket " << i << ": ";
+                Node * current = bucketsArray[i];
+                if (current == nullptr) {
+                    std::cout << "empty"; // Indicate empty bucket
+                } else {
+                    while (current != nullptr) {
+                        std::cout << "[" << current -> key << ": " << current -> value << "] ";
+                        current = current -> next; // Move to the next node in the chain
+                    }
+                }
+                std::cout << std::endl; // New line after each bucket
+            }
+            std::cout << "Total elements: " << sizeCurrent << std::endl; // Show total number of elements
+        }
+
     };
 
-    Node* root;
+template < typename K, typename V >
+    class BinarySearchTree {
+        private: struct Node {
+            K key;
+            V value;
+            Node * left, * right;
+            Node(K k, V v): key(k), value(v), left(nullptr), right(nullptr) {}
+        };
 
-    // Helper to insert a new (key, value)
-    Node* insert(Node* node, K key, V value) {
-        if (node == nullptr) {
-            return new Node(key, value);
-        }
-        if (key < node->key) {
-            node->left = insert(node->left, key, value);
-        } else if (key > node->key) {
-            node->right = insert(node->right, key, value);
-        } else {
-            node->value = value; // Replace value if key exists
-        }
-        return node;
-    }
+        Node * root;
 
-    // Helper to find a key
-    Node* find(Node* node, K key) {
-        if (node == nullptr || node->key == key) {
+        // Helper to insert a new (key, value)
+        Node * insert(Node * node, K key, V value) {
+            if (node == nullptr) {
+                return new Node(key, value);
+            }
+            if (key < node -> key) {
+                node -> left = insert(node -> left, key, value);
+            } else if (key > node -> key) {
+                node -> right = insert(node -> right, key, value);
+            } else {
+                node -> value = value; // Replace value if key exists
+            }
             return node;
         }
-        if (key < node->key) {
-            return find(node->left, key);
+
+        // Helper to find a key
+        Node * find(Node * node, K key) {
+            if (node == nullptr || node -> key == key) {
+                return node;
+            }
+            if (key < node -> key) {
+                return find(node -> left, key);
+            }
+            return find(node -> right, key);
         }
-        return find(node->right, key);
-    }
 
-public:
-    BinarySearchTree() : root(nullptr) {}
+        public: BinarySearchTree(): root(nullptr) {}
 
-    void insert(K key, V value) {
-        root = insert(root, key, value);
-    }
+        void insert(K key, V value) {
+            root = insert(root, key, value);
+        }
 
-    V* find(K key) {
-        Node* result = find(root, key);
-        return result ? &result->value : nullptr;
-    }
+        V * find(K key) {
+            Node * result = find(root, key);
+            return result ? & result -> value : nullptr;
+        }
 
-    bool isEmpty() const {
-        return root == nullptr;
-    }
-};
-
-
-
+        bool isEmpty() const {
+            return root == nullptr;
+        }
+    };
 
 // Choose either BinarySearchTree or HashTable for the map implementation
-//typedef BinarySearchTree<std::string, CharDistribution> MapType;
-typedef myHashMap<std::string, CharDistribution> MapType;
-void processInput(const std::string& text, int windowSize, MapType& map) {
+typedef BinarySearchTree<std::string, CharDistribution> MapType;
+//typedef myHashMap < std::string, CharDistribution > MapType;
+void processInput(const std::string & text, int windowSize, MapType & map) {
     for (int i = 0; i + windowSize <= text.length(); ++i) {
         std::string window = text.substr(i, windowSize);
-        std::cout << "Processing window: '" << window << "' at index: " << i << std::endl;
 
         // Check for the next character after the window
         if (i + windowSize < text.length()) {
-            
+
             char nextChar = text[i + windowSize];
-            std::cout << "Next character after window: '" << nextChar << "'" << std::endl;
 
             // Ignore invalid characters
             if (!isprint(nextChar) || nextChar == '\n') {
-                std::cout << "Skipping invalid nextChar: '" << nextChar << "'" << std::endl;
                 continue;
             }
-            std::cout << "About to find distribution for window: '" << window << "'" << std::endl;
-            CharDistribution* dist = map.find(window);
-            std::cout << "dist = " << dist << std::endl;
-  
+            CharDistribution * dist = map.find(window);
+
             if (dist == nullptr) {
-                std::cout << "Are we getting here?: \n";
-                std::cout << "Inserting new window: " << window << std::endl;
                 CharDistribution newDist; // Create a new distribution
                 newDist.increment(nextChar); // Increment for nextChar
-                
+
                 map.insert(window, newDist);
-                std::cout << "Inserted: " << window << " successfully." << std::endl;
             } else {
-                std::cout << "Updating existing window: " << window << std::endl;
-                dist->increment(nextChar); // Increment for existing distribution
+                dist -> increment(nextChar); // Increment for existing distribution
             }
-        } else {
-            std::cout << "No valid nextChar for window: '" << window << "'" << std::endl;
-        }
+        } 
     }
 }
 
-std::string generateOutput(const std::string& inputText, int windowSize, int length, MapType& map) {
+std::string generateOutput(const std::string & inputText, int windowSize, int length, MapType & map) {
     std::string output = inputText.substr(0, windowSize);
 
     for (int i = windowSize; i < length; ++i) {
         std::string window = output.substr(i - windowSize, windowSize);
-        CharDistribution* dist = map.find(window);
+        CharDistribution * dist = map.find(window);
         if (dist == nullptr) {
             output += ' '; // Default to space if no distribution
         } else {
-            output += dist->getRandomChar();
+            output += dist -> getRandomChar();
         }
     }
 
@@ -390,18 +334,16 @@ std::string generateOutput(const std::string& inputText, int windowSize, int len
 }
 
 int main() {
-    srand(time(NULL));
+    srand(time(0));
+
     std::ifstream inputFile("merchant.txt");
     if (!inputFile) {
         std::cerr << "Error opening input file." << std::endl;
         return 1;
     }
 
-
-
-    std::string text((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
+    std::string text((std::istreambuf_iterator < char > (inputFile)), std::istreambuf_iterator < char > ());
     text.erase(remove(text.begin(), text.end(), '\n'), text.end());
-    std::cout << "First 100 characters of input text:\n" << text.substr(0, 100) << std::endl;
 
     int windowSize, outputLength;
     std::cout << "Enter window size: ";
@@ -409,14 +351,17 @@ int main() {
     std::cout << "Enter output text length: ";
     std::cin >> outputLength;
 
-    std::cout << "Window size: " << windowSize << "\n";
-    std::cout << "Output length: " << outputLength << "\n";
+    if(windowSize > text.length() || windowSize < 0 || outputLength < 0)
+    {
+        std::cerr << "Exception occured during input: invalid input (maybe you input something larger than file length or negative?) \n";
+        return 1;
+    }
     std::cout << "Processing input text..." << std::endl;
 
     MapType map;
     try {
         processInput(text, windowSize, map);
-    } catch (const std::exception& e) {
+    } catch (const std::exception & e) {
         std::cerr << "Exception occurred during input processing: " << e.what() << std::endl;
         return 1;
     }
@@ -426,7 +371,7 @@ int main() {
     std::string output;
     try {
         output = generateOutput(text, windowSize, outputLength, map);
-    } catch (const std::exception& e) {
+    } catch (const std::exception & e) {
         std::cerr << "Exception occurred during output generation: " << e.what() << std::endl;
         return 1;
     }
