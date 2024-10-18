@@ -4,29 +4,29 @@
 #include<cmath>
 #include<type_traits>
 #include<iostream>
-#include<vector>
 #include<algorithm>
 
 class CharDistribution {
 private:
-    std::vector<int> counts; // 27 counters for 26 letters + space
+    int counts[27]; // 27 counters for 26 letters + space
     int total; // total occurrences of all characters
 public:
-    CharDistribution() : counts(27, 0), total(0) {}
+    CharDistribution() : total(0) {
+        for (int i = 0; i < 27; ++i) {
+            counts[i] = 0;
+        }
+    }
 
-    // Increment the counter for character c
-bool occurs(char c) {
-    int index = c - 'a';
-    std::cout << "Checking character: " << c << " (index: " << index << ")" << std::endl;
-    if (index < 0 || index >= 26) return false; // Bounds check
-    return counts[index] > 0;
-}
+    bool occurs(char c) {
+        int index = c - 'a';
+        std::cout << "Checking character: " << c << " (index: " << index << ")" << std::endl;
+        if (index < 0 || index >= 26) return false; // Bounds check
+        return counts[index] > 0;
+    }
 
-    // Return a character based on the distribution
     char getRandomChar() {
         if (total == 0) return ' '; // In case of no counts, return space
         
-        // Random number between 1 and total
         int randomIndex = rand() % total + 1;
         int cumulative = 0;
 
@@ -38,20 +38,19 @@ bool occurs(char c) {
         }
         return ' '; // fallback
     }
-  void increment(char c) {
-    int index;
-    if (c == ' ') {
-        index = 26; // Space character maps to the 27th index
-    } else if (c >= 'a' && c <= 'z') {
-        index = c - 'a'; // Map 'a' to 0, 'b' to 1, ..., 'z' to 25
-    } else {
-        return; // Skip invalid characters
+
+    void increment(char c) {
+        int index;
+        if (c == ' ') {
+            index = 26; // Space character maps to the 27th index
+        } else if (c >= 'a' && c <= 'z') {
+            index = c - 'a'; // Map 'a' to 0, 'b' to 1, ..., 'z' to 25
+        } else {
+            return; // Skip invalid characters
+        }
+        counts[index]++;
+        total++;
     }
-    counts[index]++;
-    total++;
-}
-
-
 };
 
 template <typename K, typename V>
@@ -392,7 +391,7 @@ std::string generateOutput(const std::string& inputText, int windowSize, int len
 
 int main() {
     srand(time(NULL));
-    std::ifstream inputFile("merchant_of_venice.txt");
+    std::ifstream inputFile("merchant.txt");
     if (!inputFile) {
         std::cerr << "Error opening input file." << std::endl;
         return 1;
