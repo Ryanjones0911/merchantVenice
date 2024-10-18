@@ -4,28 +4,55 @@
 #include<cmath>
 #include<type_traits>
 #include<iostream>
+#include<vector>
+#include<algorithm>
 
-/*
-class charDistribution
-{
-    private:
-        // data 
-    public:
-        charDistribution(// args );
-        ~charDistribution();
-    
-    //constructor
-    charDistribution(// args )
-    {
+class CharDistribution {
+private:
+    std::vector<int> counts; // 27 counters for 26 letters + space
+    int total; // total occurrences of all characters
+public:
+    CharDistribution() : counts(27, 0), total(0) {}
 
+    // Increment the counter for character c
+bool occurs(char c) {
+    int index = c - 'a';
+    std::cout << "Checking character: " << c << " (index: " << index << ")" << std::endl;
+    if (index < 0 || index >= 26) return false; // Bounds check
+    return counts[index] > 0;
+}
+
+    // Return a character based on the distribution
+    char getRandomChar() {
+        if (total == 0) return ' '; // In case of no counts, return space
+        
+        // Random number between 1 and total
+        int randomIndex = rand() % total + 1;
+        int cumulative = 0;
+
+        for (int i = 0; i < 27; i++) {
+            cumulative += counts[i];
+            if (cumulative >= randomIndex) {
+                return (i == 26) ? ' ' : ('a' + i);
+            }
+        }
+        return ' '; // fallback
     }
+  void increment(char c) {
+    int index;
+    if (c == ' ') {
+        index = 26; // Space character maps to the 27th index
+    } else if (c >= 'a' && c <= 'z') {
+        index = c - 'a'; // Map 'a' to 0, 'b' to 1, ..., 'z' to 25
+    } else {
+        return; // Skip invalid characters
+    }
+    counts[index]++;
+    total++;
+}
 
-    //constructor
-    ~charDistribution()
-    {
 
-    }   
-};*/
+};
 
 template <typename K, typename V>
 class myHashMap
@@ -168,15 +195,17 @@ class myHashMap
         }
         prev = current; // Move prev to current
         current = current->next; // Move to the next node
-    }
+        }
     // If we reach here, the key was not found
     throw std::runtime_error("Key not found");
-}
+    }
 
 
-    void insertElement(K key, V value)
+    void insert(K key, V value)
     {
+        std::cout << "Inserting key: " << key << std::endl;
         int index = hash(key);
+        std::cout << "Hashing key: " << key << " to index: " << index << std::endl;
         
         Node* newNode = new Node(key, value);
 
@@ -205,8 +234,9 @@ class myHashMap
         return false;
     }
 
-    V find(K key)
+    V* find(K key)
     {
+        std::cout << "Finding key: " << key << std::endl;
         int index = hash(key);
 
         Node* current = bucketsArray[index];
@@ -215,12 +245,13 @@ class myHashMap
         {
             if(current->key == key)
             {
-                return current->value;
+                return &current->value;
             }
             current = current->next;
         }
 
-        throw std::runtime_error("The key '" + std::to_string(key) + "' cannot be located in the hash map");
+        //throw std::runtime_error("The key '" + key + "' cannot be located in the hash map");
+        return nullptr;
 
     }
     void display() {
@@ -244,98 +275,171 @@ class myHashMap
 };
 
 
-/*
-class binarySearchTree
-{
-    private:
-        // data 
-    public:
-        binarySearchTree(// args );
-        ~binarySearchTree();
+template<typename K, typename V>
+class BinarySearchTree {
+private:
+    struct Node {
+        K key;
+        V value;
+        Node *left, *right;
+        Node(K k, V v) : key(k), value(v), left(nullptr), right(nullptr) {}
+    };
 
-    //constructor
-    binarySearchTree(// args )
-    {
+    Node* root;
 
+    // Helper to insert a new (key, value)
+    Node* insert(Node* node, K key, V value) {
+        if (node == nullptr) {
+            return new Node(key, value);
+        }
+        if (key < node->key) {
+            node->left = insert(node->left, key, value);
+        } else if (key > node->key) {
+            node->right = insert(node->right, key, value);
+        } else {
+            node->value = value; // Replace value if key exists
+        }
+        return node;
     }
 
-    //destructor
-    ~binarySearchTree()
-    {
-
-    }
-};*/
-
-
-
-
-
-
-/*this will be the main logic, ideally just getting input and calling functions
-int main()
-{
-
-//select either Binary Search Tree or Hashmap implementation
-
-
-
-//scan input text and generate a character distribution
-
-
-//return generated output text based on constructed char distribution
-return 0;
-}*/
-int main()
-{
-    // Create an instance of myHashMap with a capacity of 10
-    myHashMap<int, std::string> map(10);
-
-    // Insert elements into the map that will cause collisions
-    std::cout << "Inserting elements into the hash map (testing collisions):" << std::endl;
-    map.insertElement(10, "ten");  // This will hash to index 0 (10 % 10 = 0)
-    map.insertElement(20, "twenty"); // This will also hash to index 0 (20 % 10 = 0)
-    map.insertElement(30, "thirty"); // This will hash to index 0 (30 % 10 = 0)
-    map.insertElement(25, "twenty five");
-
-    // Visualize the internal structure after insertions
-    std::cout << "Hash map structure after insertions (with collisions):" << std::endl;
-    map.display(); // Display the contents of the hash map
-
-    // Retrieve elements to check if they were stored correctly
-    try
-    {
-        std::cout << "Retrieving values:" << std::endl;
-        std::cout << "Value for key 10: " << map.find(10) << std::endl;
-        std::cout << "Value for key 20: " << map.find(20) << std::endl;
-        std::cout << "Value for key 30: " << map.find(30) << std::endl;
-    }
-    catch (const std::runtime_error &e)
-    {
-        std::cerr << e.what() << std::endl;
+    // Helper to find a key
+    Node* find(Node* node, K key) {
+        if (node == nullptr || node->key == key) {
+            return node;
+        }
+        if (key < node->key) {
+            return find(node->left, key);
+        }
+        return find(node->right, key);
     }
 
-    // Remove an element and visualize the structure again
-    std::cout << "\nRemoving key 30" << std::endl;
-    map.removeElement(30);
-    
-    // Visualize the internal structure after removal
-    std::cout << "Hash map structure after removing key 30:" << std::endl;
-    map.display();
+public:
+    BinarySearchTree() : root(nullptr) {}
 
-    // Try to find the removed key
-    try
-    {
-        std::cout << "Trying to find removed key 30: ";
-        std::cout << map.find(20) << std::endl; // This should throw an error
-    }
-    catch (const std::runtime_error &e)
-    {
-        std::cerr << e.what() << std::endl; // Should print an error message
+    void insert(K key, V value) {
+        root = insert(root, key, value);
     }
 
-    // Display size and emptiness
-    std::cout << "\nMap size: " << map.size() << std::endl;
-    std::cout << "Is map empty? " << (map.empty() ? "Yes" : "No") << std::endl;
+    V* find(K key) {
+        Node* result = find(root, key);
+        return result ? &result->value : nullptr;
+    }
+
+    bool isEmpty() const {
+        return root == nullptr;
+    }
+};
+
+
+
+
+// Choose either BinarySearchTree or HashTable for the map implementation
+//typedef BinarySearchTree<std::string, CharDistribution> MapType;
+typedef myHashMap<std::string, CharDistribution> MapType;
+void processInput(const std::string& text, int windowSize, MapType& map) {
+    for (int i = 0; i + windowSize <= text.length(); ++i) {
+        std::string window = text.substr(i, windowSize);
+        std::cout << "Processing window: '" << window << "' at index: " << i << std::endl;
+
+        // Check for the next character after the window
+        if (i + windowSize < text.length()) {
+            
+            char nextChar = text[i + windowSize];
+            std::cout << "Next character after window: '" << nextChar << "'" << std::endl;
+
+            // Ignore invalid characters
+            if (!isprint(nextChar) || nextChar == '\n') {
+                std::cout << "Skipping invalid nextChar: '" << nextChar << "'" << std::endl;
+                continue;
+            }
+            std::cout << "About to find distribution for window: '" << window << "'" << std::endl;
+            CharDistribution* dist = map.find(window);
+            std::cout << "dist = " << dist << std::endl;
+  
+            if (dist == nullptr) {
+                std::cout << "Are we getting here?: \n";
+                std::cout << "Inserting new window: " << window << std::endl;
+                CharDistribution newDist; // Create a new distribution
+                newDist.increment(nextChar); // Increment for nextChar
+                
+                map.insert(window, newDist);
+                std::cout << "Inserted: " << window << " successfully." << std::endl;
+            } else {
+                std::cout << "Updating existing window: " << window << std::endl;
+                dist->increment(nextChar); // Increment for existing distribution
+            }
+        } else {
+            std::cout << "No valid nextChar for window: '" << window << "'" << std::endl;
+        }
+    }
+}
+
+std::string generateOutput(const std::string& inputText, int windowSize, int length, MapType& map) {
+    std::string output = inputText.substr(0, windowSize);
+
+    for (int i = windowSize; i < length; ++i) {
+        std::string window = output.substr(i - windowSize, windowSize);
+        CharDistribution* dist = map.find(window);
+        if (dist == nullptr) {
+            output += ' '; // Default to space if no distribution
+        } else {
+            output += dist->getRandomChar();
+        }
+    }
+
+    return output;
+}
+
+int main() {
+    srand(time(NULL));
+    std::ifstream inputFile("merchant_of_venice.txt");
+    if (!inputFile) {
+        std::cerr << "Error opening input file." << std::endl;
+        return 1;
+    }
+
+
+
+    std::string text((std::istreambuf_iterator<char>(inputFile)), std::istreambuf_iterator<char>());
+    text.erase(remove(text.begin(), text.end(), '\n'), text.end());
+    std::cout << "First 100 characters of input text:\n" << text.substr(0, 100) << std::endl;
+
+    int windowSize, outputLength;
+    std::cout << "Enter window size: ";
+    std::cin >> windowSize;
+    std::cout << "Enter output text length: ";
+    std::cin >> outputLength;
+
+    std::cout << "Window size: " << windowSize << "\n";
+    std::cout << "Output length: " << outputLength << "\n";
+    std::cout << "Processing input text..." << std::endl;
+
+    MapType map;
+    try {
+        processInput(text, windowSize, map);
+    } catch (const std::exception& e) {
+        std::cerr << "Exception occurred during input processing: " << e.what() << std::endl;
+        return 1;
+    }
+
+    std::cout << "Input processing completed successfully." << std::endl;
+
+    std::string output;
+    try {
+        output = generateOutput(text, windowSize, outputLength, map);
+    } catch (const std::exception& e) {
+        std::cerr << "Exception occurred during output generation: " << e.what() << std::endl;
+        return 1;
+    }
+
+    std::ofstream outputFile("output.txt");
+    if (!outputFile) {
+        std::cerr << "Error opening output file." << std::endl;
+        return 1;
+    }
+
+    outputFile << output;
+    std::cout << "Output text generated and written to output.txt." << std::endl;
 
     return 0;
 }
